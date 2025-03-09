@@ -1,0 +1,258 @@
+﻿
+@page "/"
+@using System.Text.Json
+@using System.Text.Json.Serialization
+
+<MudAppBar Gutters="false" Color="Color.Primary">
+    <MudIconButton Style="color: white" Icon="@Icons.Material.Filled.Menu" OnClick="ToggleSidebar"/>
+    <MudTextField FullWidth Style="background-color: white;" Value="Sentence" @onclick="SpeakSentence" ReadOnly/>
+    <MudIconButton Style="color: white" Icon="@Icons.Material.Filled.Backspace" OnClick="DeleteLast" title="Delete Last"/>
+    <MudIconButton Style="color: white" Icon="@Icons.Material.Filled.Delete" OnClick="DeleteAll" title="Delete All"/>
+</MudAppBar>
+
+<MudDrawer @bind-Open="sidebarOpen" ClipMode="DrawerClipMode.Always" Width="250px">
+    <MudStack>
+        <text>Boards</text>
+        <MudSelect @bind-Value="activeBoard">
+            @foreach (var board in boards.Where(x => x.TopLevel))
+            {
+                <MudSelectItem Value="board">@board.Name</MudSelectItem>
+            }
+        </MudSelect>
+        <text>Speech Config</text>
+        <MudSelect Label="Voice" @bind-Value="speechConfig.Voice">
+            @foreach (var voice in availableVoices.Where(x => x.Lang == "en-GB"))
+            {
+                <MudSelectItem Value="voice.Name">@voice.Name (@voice.Lang)</MudSelectItem>
+            }
+        </MudSelect>
+        <MudNumericField Label="Pitch" @bind-Value="speechConfig.Pitch"/>
+        <MudNumericField Label="Rate" @bind-Value="speechConfig.Rate"/>
+        <text>General Config</text>
+        <MudCheckBox Label="Speak Word On Click" @bind-Value="speakWordOnClick" />
+        <MudCheckBox Label="Delete Sentence After Speaking" @bind-Value="deleteSentenceAfterSpeaking" />
+        <MudCheckBox Label="Return To Parent" @bind-Value="returnToParent" />
+    </MudStack>
+</MudDrawer>
+
+<div class="board-container">
+    <div class="board">
+        @for (int i = 0; i < activeBoard.Columns * activeBoard.Rows; i++)
+        {
+            <TileComponent OnTileClicked="TileClicked" Tile="activeBoard.Tiles[i]"/>
+        }
+    </div>
+</div>
+
+<style>
+    :root {
+        --grid-columns: @activeBoard.Columns;
+        --grid-rows: @activeBoard.Rows;
+        --grid-gap: @(gridGap)px;
+        --topbar-height: 64px;
+        --sidebar-width: 0px;
+
+        /* Ensure each tile fits within available space */
+        --max-width: calc((100vw - var(--sidebar-width)) / var(--grid-columns) - var(--grid-gap));
+        --max-height: calc((100vh - var(--topbar-height)) / var(--grid-rows) - var(--grid-gap));
+        --grid-size: min(var(--max-width), var(--max-height));
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .board-container {
+        display: flex;
+        justify-content: center;
+        align-items: start;
+        height: calc(100vh - var(--topbar-height));
+        overflow: hidden;
+    }
+
+    .board {
+        display: grid;
+        grid-template-columns: repeat(var(--grid-columns), var(--grid-size));
+        grid-template-rows: repeat(var(--grid-rows), var(--grid-size));
+        gap: var(--grid-gap);
+        justify-content: center;
+        align-content: center;
+    }
+
+</style>
+
+@code {
+
+    int gridGap = 0;
+    bool sidebarOpen = false;
+
+    SpeechConfig speechConfig = new();
+
+    bool deleteSentenceAfterSpeaking = true;
+    bool speakWordOnClick = true;
+    bool returnToParent = true;
+
+    List<Board> boards = [];
+    Board activeBoard = _defaultBoard;
+
+    List<Tile> clicked = [];
+
+    string Sentence => string.Join(" ", clicked.Select(x => x.DisplayName));
+
+    VoiceOption? selectedVoice;
+
+    protected override async Task OnInitializedAsync()
+    {
+        List<string> names = ["expanded", "initial", "standard", "tts-keyboard"];
+
+        foreach (var name in names)
+        {
+
+            var boardsJson = await HttpClient.GetAsync($"/boards/{name}.json");
+
+            if (boardsJson.IsSuccessStatusCode)
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true, // Allow case insensitivity
+                    AllowTrailingCommas = true,
+                    Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+                };
+
+                var boardSet = await boardsJson.Content.ReadFromJsonAsync<List<Board>>(options) ?? [];
+                boards.AddRange(boardSet);
+            }
+
+            // activeBoard = boards.FirstOrDefault(x => x.TopLevel) ?? _defaultBoard;
+
+
+        }
+        await LoadVoices();
+    }
+
+    List<VoiceOption> availableVoices = [];
+
+    async Task LoadVoices()
+    {
+        availableVoices = await Js.InvokeAsync<List<VoiceOption>>("speech.getVoices");
+    }
+
+    async Task TileClicked(Tile tile)
+    {
+        Board? newBoard = null;
+        if (returnToParent && tile.LinkTo is null)
+        {
+            newBoard = boards.FirstOrDefault(x => x.Name.ToUpper() == activeBoard.Path.FirstOrDefault()?.ToUpper());
+        }
+        else if (tile.LinkTo is not null)
+        {
+            newBoard = boards.FirstOrDefault(x => string.Equals(x.Name, tile.LinkTo, StringComparison.CurrentCultureIgnoreCase));
+        }
+        if (newBoard is not null && newBoard.Name.ToUpper() != activeBoard.Name.ToUpper())
+        {
+            activeBoard = newBoard;
+            if(tile.Type == TileType.Link) return;
+        }
+
+        if (tile.Type == TileType.Regular)
+        {
+            clicked.Add(tile);
+            if (speakWordOnClick)
+            {
+                await SpeakText(tile.Pronunciation ?? tile.DisplayName);
+            }
+        }
+
+        else if (tile.Type == TileType.GrammarMarker)
+        {
+            if (clicked.Count == 0) return;
+
+            var last = clicked[^1];
+
+            Tile newLast = tile.InternalName switch
+            {
+                "plural" => last with
+                {
+                    Pronunciation = last.PluralFormPronunciation ?? last.PluralForm ?? last.Pronunciation ?? last.DisplayName,
+                    DisplayName = last.PluralForm ?? last.DisplayName
+                },
+                "past" => last with
+                {
+                    Pronunciation = last.PastFormPronunciation ?? last.PastForm ?? last.Pronunciation ?? last.DisplayName,
+                    DisplayName = last.PastForm ?? last.DisplayName
+                },
+                "negative" => last with
+                {
+                    Pronunciation = last.NegativeFormPronunciation ?? last.NegativeForm ?? last.Pronunciation ?? last.DisplayName,
+                    DisplayName = last.NegativeForm ?? last.DisplayName
+                },
+                _ => last
+            };
+
+            clicked[^1] = newLast;
+            if (speakWordOnClick)
+            {
+                await SpeakText(clicked[^1].Pronunciation);
+            }
+        }
+    }
+
+
+    async Task SpeakText(string text)
+    {
+        await StopSpeech();
+        await Js.InvokeAsync<bool>("speech.speak", text, speechConfig);
+    }
+
+    async Task StopSpeech()
+    {
+        await Js.InvokeVoidAsync("speech.stop");
+    }
+
+    async Task SpeakSentence()
+    {
+        await SpeakText(string.Join(" ", clicked.Select(x => x.Pronunciation ?? x.DisplayName)));
+
+        if (deleteSentenceAfterSpeaking)
+        {
+            DeleteAll();
+        }
+    }
+
+    void DeleteLast()
+    {
+        if (clicked.Count > 0)
+        {
+            clicked.RemoveAt(clicked.Count - 1);
+        }
+    }
+
+    void DeleteAll()
+    {
+        clicked.Clear();
+    }
+
+    static Board _defaultBoard = new()
+    {
+        Name = "Temp",
+        TopLevel = false,
+        Columns = 1,
+        Rows = 1,
+        Path = ["Temp"],
+        Tiles = [
+            new Tile { DisplayName = "AACore", InternalName = "aacore" }
+        ]
+    };
+
+
+    void ToggleSidebar()
+    {
+        sidebarOpen = !sidebarOpen;
+        var sidebarWidth = sidebarOpen ? "250px" : "0px";
+        Js.InvokeVoidAsync("updateCSSVariable", "--sidebar-width", sidebarWidth);
+    }
+
+}

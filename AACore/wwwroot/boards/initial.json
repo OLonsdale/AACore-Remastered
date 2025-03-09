@@ -1,0 +1,139 @@
+[
+  {
+    "name": "Initial",
+    "topLevel": true,
+    "rows": 3,
+    "columns": 6,
+    "path": [
+      "initial"
+    ],
+    "tiles": [
+      {
+        "type": "regular",
+        "displayName": "want",
+        "iconName": "want",
+        "colour": "green",
+        "internalName": "want"
+      },
+      {
+        "type": "regular",
+        "displayName": "more",
+        "iconName": "more",
+        "colour": "blue",
+        "internalName": "more"
+      },
+      {
+        "type": "regular",
+        "displayName": "not",
+        "iconName": "not",
+        "colour": "grey",
+        "internalName": "not"
+      },
+      {
+        "type": "regular",
+        "displayName": "go",
+        "iconName": "go",
+        "colour": "green",
+        "internalName": "go"
+      },
+      {
+        "type": "regular",
+        "displayName": "help",
+        "iconName": "help",
+        "colour": "green",
+        "internalName": "help"
+      },
+      {
+        "type": "regular",
+        "displayName": "look",
+        "iconName": "look",
+        "colour": "green",
+        "internalName": "look"
+      },
+      {
+        "type": "regular",
+        "displayName": "play",
+        "iconName": "play",
+        "colour": "green",
+        "internalName": "play"
+      },
+      {
+        "type": "regular",
+        "displayName": "same",
+        "iconName": "same",
+        "colour": "blue",
+        "internalName": "same"
+      },
+      {
+        "type": "regular",
+        "displayName": "different",
+        "iconName": "different",
+        "colour": "blue",
+        "internalName": "different"
+      },
+      {
+        "type": "regular",
+        "displayName": "what",
+        "iconName": "what",
+        "colour": "pink",
+        "internalName": "what"
+      },
+      {
+        "type": "regular",
+        "displayName": "like",
+        "iconName": "like",
+        "colour": "green",
+        "internalName": "like"
+      },
+      {
+        "type": "regular",
+        "displayName": "stop",
+        "iconName": "stop",
+        "colour": "green",
+        "internalName": "stop"
+      },
+      {
+        "type": "regular",
+        "displayName": "drink",
+        "iconName": "drink",
+        "colour": "green",
+        "internalName": "drink"
+      },
+      {
+        "type": "regular",
+        "displayName": "eat",
+        "iconName": "eat",
+        "colour": "green",
+        "internalName": "eat"
+      },
+      {
+        "type": "regular",
+        "displayName": "turn",
+        "iconName": "turn",
+        "colour": "green",
+        "internalName": "turn"
+      },
+      {
+        "type": "regular",
+        "displayName": "up",
+        "iconName": "up",
+        "colour": "red",
+        "internalName": "up"
+      },
+      {
+        "type": "regular",
+        "displayName": "down",
+        "iconName": "down",
+        "colour": "red",
+        "internalName": "down"
+      },
+      {
+        "type": "regular",
+        "displayName": "finish",
+        "iconName": "finish",
+        "colour": "green",
+        "internalName": "finish"
+      }
+    ]
+  }
+]

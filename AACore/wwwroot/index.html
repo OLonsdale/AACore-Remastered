@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="name" content="AACore" />
+    <meta name="application-name" content="AACore" />
+    <meta name="description"
+          content="A free and open-source progressive web app for Augmentative and Alternative Communication" />
+    <meta name="author" content="Beth Lonsdale, Oliver Lonsdale" />
+    <meta name="keywords"
+          content="AACore, app, AAC, TTS, accessibility, communication, free, online, offline, open-source" />
+    
+    <title>AACore</title>
+    <base href="/" />
+    
+    <link href="manifest.webmanifest" rel="manifest" />
+    <link rel="icon" type="image/x-icon" href="favicon_16px.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="favicon_512px.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon-ios.png" />
+    
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/app.css" />
+    <!-- If you add any scoped CSS files, uncomment the following to load them
+    <link href="AACore-Remastered.styles.css" rel="stylesheet" /> -->
+</head>
+
+<body>
+    <div id="app">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text"></div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+
+    <script src="/js/css.js"></script>
+    <script src="/js/speech.js"></script>
+    <script src="/js/indexDB.js"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    
+    <script>navigator.serviceWorker.register('/js/service-worker.js');</script>
+</body>
+
+</html>

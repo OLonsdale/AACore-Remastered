@@ -1,0 +1,133 @@
+<style>
+
+    .item {
+        /* Set scale font size to hopefully fit in the boxes */
+        font-size: min(calc(var(--grid-size) * 0.3), 2ch) !important;
+        font-weight: bold !important;
+        color: black !important;
+        flex-direction: column;
+        box-shadow: 0 0 0 1px inset black;
+        width: var(--grid-size);
+        height: var(--grid-size);
+        overflow: hidden;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        /*border: 1px solid black;*/
+    }
+
+    .icon {
+        width: 70%;
+        height: 70%;
+    }
+    
+    .item:hover,
+    .item:focus {
+        filter: brightness(90%);
+    }
+
+    .red {
+        background-color: rgb(255, 79, 79);
+    }
+
+    .pink {
+        background-color: pink;
+    }
+
+    .orange {
+        background-color: orange;
+    }
+
+    .yellow {
+        background-color: rgb(248, 207, 103);
+    }
+
+    .green {
+        background-color: rgb(188, 248, 188);
+    }
+
+    .blue {
+        background-color: rgb(167, 237, 237);
+    }
+
+    .grey {
+        background-color: gainsboro;
+    }
+
+    .white {
+        background-color: white;
+    }
+
+    .blank {
+        background-color: transparent;
+    }
+
+    .grammar-marker {
+        background-color: rgb(177, 156, 217);
+    }
+
+    .link-colour {
+        background-color: darkcyan;
+        border-radius: 15px;
+    }
+
+    .editMode {
+        background-color: rgb(153, 71, 149);
+    }
+
+    .dimmed {
+        filter: brightness(20%) !important;
+    }
+</style>
+
+@if (Tile.Type == TileType.Blank)
+{
+    <div class="item blank"></div>
+}
+
+else
+{
+    <div @onclick="TileClicked" class="item @ColourClass @TypeClass">
+        <label>@Tile.DisplayName</label>
+        @if (!string.IsNullOrWhiteSpace(Tile.IconLink + Tile.IconName))
+        {
+            <img src="@(Tile.IconLink ?? $"/icons/{Tile.IconName}.webp")" class="icon" alt="@Tile.DisplayName">
+        }
+    </div>
+}
+
+@code {
+    
+    [Parameter, EditorRequired] public required Tile Tile { set; get; }     
+    [Parameter, EditorRequired] public required EventCallback<Tile> OnTileClicked { set; get; }
+
+    async Task TileClicked()
+    {
+        await OnTileClicked.InvokeAsync(Tile);
+    }
+    
+    string ColourClass => Tile.Colour switch
+    {
+        TileColour.Red => "red",
+        TileColour.Pink => "pink",
+        TileColour.Orange => "orange",
+        TileColour.Yellow => "yellow",
+        TileColour.Green => "green",
+        TileColour.Blue => "blue",
+        TileColour.Grey => "grey",
+        TileColour.White => "white",
+        _ => "" // Fallback case
+    };
+
+    string TypeClass => Tile.Type switch
+    {
+        TileType.Blank => "blank",
+        TileType.GrammarMarker => "grammar-marker",
+        TileType.Regular => "",
+        TileType.Link => "link-colour",
+        _ => throw new ArgumentOutOfRangeException()
+    };
+
+}
