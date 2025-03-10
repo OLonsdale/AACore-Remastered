@@ -1,3 +1,19 @@
+@if (Tile.Type == TileType.Blank)
+{
+    <div class="item blank"></div>
+}
+
+else
+{
+    <div @onclick="TileClicked" class="item @ColourClass @TypeClass">
+        <label>@Tile.DisplayName</label>
+        @if (!string.IsNullOrWhiteSpace(Tile.IconLink + Tile.IconName))
+        {
+            <img src="@(Tile.IconLink ?? $"/icons/{Tile.IconName}.webp")" class="icon" >
+        }
+    </div>
+}
+
 <style>
 
     .item {
@@ -22,7 +38,7 @@
         width: 70%;
         height: 70%;
     }
-    
+
     .item:hover,
     .item:focus {
         filter: brightness(90%);
@@ -81,22 +97,6 @@
         filter: brightness(20%) !important;
     }
 </style>
-
-@if (Tile.Type == TileType.Blank)
-{
-    <div class="item blank"></div>
-}
-
-else
-{
-    <div @onclick="TileClicked" class="item @ColourClass @TypeClass">
-        <label>@Tile.DisplayName</label>
-        @if (!string.IsNullOrWhiteSpace(Tile.IconLink + Tile.IconName))
-        {
-            <img src="@(Tile.IconLink ?? $"/icons/{Tile.IconName}.webp")" class="icon" alt="@Tile.DisplayName">
-        }
-    </div>
-}
 
 @code {
     

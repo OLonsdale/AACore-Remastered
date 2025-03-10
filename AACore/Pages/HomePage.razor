@@ -32,6 +32,14 @@
         <MudCheckBox Label="Speak Word On Click" @bind-Value="speakWordOnClick" />
         <MudCheckBox Label="Delete Sentence After Speaking" @bind-Value="deleteSentenceAfterSpeaking" />
         <MudCheckBox Label="Return To Parent" @bind-Value="returnToParent" />
+        @* <MudCheckBox Label="Dark Mode" @bind-Value="IsDarkMode" /> *@
+        <MudSelect @bind-Value="font">
+            @foreach (var _font in fonts)
+            {
+                <MudSelectItem Value="_font">@_font.name</MudSelectItem>
+            }
+        </MudSelect>
+
     </MudStack>
 </MudDrawer>
 
@@ -63,6 +71,7 @@
         padding: 0;
         height: 100vh;
         overflow: hidden;
+        font-family: "@font.value", "sans-serif";
     }
 
     .board-container {
@@ -86,6 +95,10 @@
 
 @code {
 
+    static List<(string name, string value)> fonts = [("Normal", "Helvetica"), ("Dyslexia", "opendyslexic"), ("Comic","Comic Neue")];
+
+    (string name, string value) font = fonts.First();
+
     int gridGap = 0;
     bool sidebarOpen = false;
 
@@ -94,6 +107,9 @@
     bool deleteSentenceAfterSpeaking = true;
     bool speakWordOnClick = true;
     bool returnToParent = true;
+
+    bool editMode;
+    
 
     List<Board> boards = [];
     Board activeBoard = _defaultBoard;
@@ -214,7 +230,9 @@
 
     async Task SpeakSentence()
     {
-        await SpeakText(string.Join(" ", clicked.Select(x => x.Pronunciation ?? x.DisplayName)));
+        string sentence = string.Join(" ", clicked.Select(x => x.Pronunciation ?? x.DisplayName));
+        sentence = sentence.Replace("\u2800 \u2800", "");
+        await SpeakText(sentence);
 
         if (deleteSentenceAfterSpeaking)
         {
